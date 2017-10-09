@@ -56,7 +56,7 @@ class FuncConverter(commands.Converter):
         code = _cleanup_code(argument)
         if "def func():" not in code:
             code = "def func():\n" + textwrap.indent(code, '  ')
-            if "await" in code:
+            if any(s in code for s in ("await", "async for", "async with")):
                 code = "async " + code
         env = {'ctx': ctx, 'discord': discord, 'commands': commands}
         try:
