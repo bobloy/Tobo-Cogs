@@ -62,7 +62,7 @@ class FuncConverter(commands.Converter):
         try:
             exec(code, env)  # pylint: disable=exec-used
         except SyntaxError as err:
-            raise commands.BadArgument(Dev.get_syntax_error(err))
+            return Dev.get_syntax_error(err)
 
         return env['func']
 
@@ -82,7 +82,7 @@ class TimeIt:
     @commands.command()
     @checks.is_owner()
     async def timeit(self, ctx: commands.Context, *, func: FuncConverter):
-        """Evaluate code and then time a function or coro.
+        """Evaluate python code and then time a function or coro.
 
         <code> must be in a codeblock if there are multiple lines.
 
@@ -98,7 +98,21 @@ class TimeIt:
             ctx
             discord
             commands
+
+        Example without func definition:
+            # Everything in this code block will be timed
+            async for message in channel.history(limit=50):
+                pass
+
+        Example with func definition:
+            import asyncio
+            async def func():
+                # Only what's inside this function will be timed
+                await asyncio.sleep(0.1)
         """
+        if isinstance(func, str):
+            # The converter returned a syntax error
+            return await ctx.send(func)
         await ctx.send("*Evaluating time...*")
         speed = _evaluate_func_speed
         if asyncio.iscoroutinefunction(func):
